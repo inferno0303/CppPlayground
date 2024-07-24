@@ -7,7 +7,8 @@ set(CMAKE_CXX_STANDARD 11)
 # 添加 server 可执行文件
 add_executable(server
         nio_socket_example/server.cpp
-        nio_socket_example/NIOSocketSenderReceiver/NIOSocketSenderReceiver.hpp
+        nio_socket_example/NetworkUtils/NioTcpMsgSenderReceiver.hpp
+        nio_socket_example/ThreadingUtils/ThreadSafeQueue.hpp
 )
 # 链接 ws2_32 库到 server
 target_link_libraries(server ws2_32)
@@ -15,7 +16,8 @@ target_link_libraries(server ws2_32)
 # 添加 client 可执行文件
 add_executable(client
         nio_socket_example/client.cpp
-        nio_socket_example/NIOSocketSenderReceiver/NIOSocketSenderReceiver.hpp
+        nio_socket_example/NetworkUtils/NioTcpMsgSenderReceiver.hpp
+        nio_socket_example/ThreadingUtils/ThreadSafeQueue.hpp
 )
 # 链接 ws2_32 库到 client
 target_link_libraries(client ws2_32)

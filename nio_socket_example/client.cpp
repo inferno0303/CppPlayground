@@ -5,7 +5,7 @@
 #include <ws2tcpip.h>
 #include <random>
 
-#include "NIOSocketSenderReceiver/NIOSocketSenderReceiver.hpp"
+#include "NetworkUtils/NioTcpMsgSenderReceiver.hpp"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -61,7 +61,7 @@ void tcpClientWorker(const char* server_ip, const unsigned short server_port) {
     std::thread processMsgThread([&nioSocketSenderReceiver] {
         while (true) {
             const char* newMsg = nioSocketSenderReceiver.recvMsg();
-            std::cout << "[received] " << newMsg << " recvMsgQUeue size: " << nioSocketSenderReceiver.getRecvMsgQueueSize() << std::endl;
+            std::cout << "[received] " << newMsg << " recvMsgQUeue size: " << nioSocketSenderReceiver.recvMsgQueueSize() << std::endl;
             delete[] newMsg;
             // 随机数生成器
             std::random_device rd;
