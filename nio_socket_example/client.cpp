@@ -55,13 +55,13 @@ void tcpClientWorker(const char* server_ip, const unsigned short server_port) {
     const SOCKET clientSocket = connectToServer(server_ip, server_port);
 
     // 创建 NIO 对象
-    NIOSocketSenderReceiver nioSocketSenderReceiver(clientSocket);
+    NioTcpMsgSenderReceiver nioTcpMsgSenderReceiver(clientSocket);
 
     // 接收数据线程，模拟处理数据较慢的情况
-    std::thread processMsgThread([&nioSocketSenderReceiver] {
+    std::thread processMsgThread([&nioTcpMsgSenderReceiver] {
         while (true) {
-            const char* newMsg = nioSocketSenderReceiver.recvMsg();
-            std::cout << "[received] " << newMsg << " recvMsgQueue size: " << nioSocketSenderReceiver.recvMsgQueueSize() << std::endl;
+            const char* newMsg = nioTcpMsgSenderReceiver.recvMsg();
+            std::cout << "[received] " << newMsg << " recvMsgQueue size: " << nioTcpMsgSenderReceiver.recvMsgQueueSize() << std::endl;
             delete[] newMsg;
             // 随机数生成器
             std::random_device rd;
@@ -77,12 +77,12 @@ void tcpClientWorker(const char* server_ip, const unsigned short server_port) {
     });
 
     // 发送数据线程，模拟发送数据较快的情况
-    std::thread sendMsgThread1([&nioSocketSenderReceiver] {
+    std::thread sendMsgThread1([&nioTcpMsgSenderReceiver] {
         while (true) {
             for (auto i = 0; i < 3; ++i) {
                 std::ostringstream oss;
                 oss << "Send from thread id: " << std::this_thread::get_id() << ", msg: " << "hello world!" << " EOF";
-                nioSocketSenderReceiver.sendMsg(oss.str().c_str());
+                nioTcpMsgSenderReceiver.sendMsg(oss.str().c_str());
             }
             // 随机数生成器
             std::random_device rd;
@@ -97,12 +97,12 @@ void tcpClientWorker(const char* server_ip, const unsigned short server_port) {
         }
     });
 
-    std::thread sendMsgThread2([&nioSocketSenderReceiver] {
+    std::thread sendMsgThread2([&nioTcpMsgSenderReceiver] {
         while (true) {
             for (auto i = 0; i < 3; ++i) {
                 std::ostringstream oss;
                 oss << "Send from thread id: " << std::this_thread::get_id() << ", msg: " << "hello world!" << " EOF";
-                nioSocketSenderReceiver.sendMsg(oss.str().c_str());
+                nioTcpMsgSenderReceiver.sendMsg(oss.str().c_str());
             }
             // 随机数生成器
             std::random_device rd;

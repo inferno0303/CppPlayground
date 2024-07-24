@@ -1,52 +1,35 @@
-#ifndef NIOSOCKETSENDERRECEIVER_HPP
-#define NIOSOCKETSENDERRECEIVER_HPP
+#ifndef NIO_TCP_MSG_SENDER_RECEIVER_HPP
+#define NIO_TCP_MSG_SENDER_RECEIVER_HPP
 
 #include <iostream>
 #include <thread>
 #include <atomic>
-#include "../ThreadingUtils/ThreadSafeQueue.hpp"
 #include <cstring>
 #include <winsock2.h>
+
+#include "../Utils/ThreadSafeQueue.hpp"
 
 #define BUFFER_SIZE 1024
 #define MSG_QUEUE_MAXSIZE 4096
 
-class NIOSocketSenderReceiver {
-private:
-    // 目标套接字
-    SOCKET socket = INVALID_SOCKET;
-
-    // 消息发送线程
-    std::thread sendThread;
-    std::atomic<bool> sendThreadRunFlag{false};
-
-    // 消息发送队列
-    ThreadSafeQueue<const char*> sendMsgQueue{MSG_QUEUE_MAXSIZE};
-
-    // 消息接收线程
-    std::thread recvThread;
-    std::atomic<bool> recvThreadRunFlag{false};
-
-    // 消息接收队列
-    ThreadSafeQueue<const char*> recvMsgQueue{MSG_QUEUE_MAXSIZE};
-
+class NioTcpMsgSenderReceiver {
 public:
-    explicit NIOSocketSenderReceiver(const SOCKET _socket) {
-        if (_socket == INVALID_SOCKET) {
+    explicit NioTcpMsgSenderReceiver(const SOCKET s) {
+        if (s == INVALID_SOCKET) {
             throw std::runtime_error("NIOSocketSenderReceiver initialization failed: invalid socket.");
         }
-        this->socket = _socket;
+        this->socket = s;
 
         // 启动发送线程
         sendThreadRunFlag.store(true);
-        sendThread = std::thread(&NIOSocketSenderReceiver::sendMsgWorker, this);
+        sendThread = std::thread(&NioTcpMsgSenderReceiver::sendMsgWorker, this);
 
         // 启动接收线程
         recvThreadRunFlag.store(true);
-        recvThread = std::thread(&NIOSocketSenderReceiver::recvMsgWorker, this);
+        recvThread = std::thread(&NioTcpMsgSenderReceiver::recvMsgWorker, this);
     }
 
-    ~NIOSocketSenderReceiver() {
+    ~NioTcpMsgSenderReceiver() {
         // 在析构函数中停止所有线程
         sendThreadRunFlag.store(false);
         recvThreadRunFlag.store(false);
@@ -80,6 +63,42 @@ public:
         }
     }
 
+    // 取出接收消息队列的消息（消费者）
+    const char* recvMsg() {
+        // 退队列头元素（如果队列为空，则阻塞，直到队列不为空）
+        const char* msg = recvMsgQueue.dequeue();
+        // 返回
+        return msg;
+    }
+
+    // 发送消息队列长度
+    size_t sendMsgQueueSize() const {
+        return sendMsgQueue.size();
+    }
+
+    // 接收消息队列长度
+    size_t recvMsgQueueSize() const {
+        return recvMsgQueue.size();
+    }
+
+private:
+    // 目标套接字
+    SOCKET socket = INVALID_SOCKET;
+
+    // 消息发送线程
+    std::thread sendThread;
+    std::atomic<bool> sendThreadRunFlag{false};
+
+    // 消息发送队列
+    ThreadSafeQueue<const char*> sendMsgQueue{MSG_QUEUE_MAXSIZE};
+
+    // 消息接收线程
+    std::thread recvThread;
+    std::atomic<bool> recvThreadRunFlag{false};
+
+    // 消息接收队列
+    ThreadSafeQueue<const char*> recvMsgQueue{MSG_QUEUE_MAXSIZE};
+
     // 取出发送消息队列的消息（消费者），并写入到套接字发送缓冲区
     void sendMsgWorker() {
         while (sendThreadRunFlag) {
@@ -111,14 +130,6 @@ public:
                 sent += result;
             }
         }
-    }
-
-    // 取出接收消息队列的消息（消费者）
-    const char* recvMsg() {
-        // 退队列头元素（如果队列为空，则阻塞，直到队列不为空）
-        const char* msg = recvMsgQueue.dequeue();
-        // 返回
-        return msg;
     }
 
     // 取出套接字缓冲区的内容，放入接收消息队列（生产者）
@@ -179,16 +190,6 @@ public:
             }
         }
     }
-
-    // 发送消息队列长度
-    size_t sendMsgQueueSize() const {
-        return sendMsgQueue.size();
-    }
-
-    // 接收消息队列长度
-    size_t recvMsgQueueSize() const {
-        return recvMsgQueue.size();
-    }
 };
 
-#endif // NIOSOCKETSENDERRECEIVER_HPP
+#endif // NIO_TCP_MSG_SENDER_RECEIVER_HPP
