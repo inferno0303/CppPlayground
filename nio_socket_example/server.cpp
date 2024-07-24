@@ -18,7 +18,7 @@ void handleClientWorker(const SOCKET clientSocket) {
     std::thread processMsgThread([&nioSocketSenderReceiver] {
         while (true) {
             const char* newMsg = nioSocketSenderReceiver.recvMsg();
-            std::cout << "[received] " << newMsg << " recvMsgQUeue size: " << nioSocketSenderReceiver.recvMsgQueueSize() << std::endl;
+            std::cout << "[received] " << newMsg << " recvMsgQueue size: " << nioSocketSenderReceiver.recvMsgQueueSize() << std::endl;
             delete[] newMsg;
             // 随机数生成器
             std::random_device rd;

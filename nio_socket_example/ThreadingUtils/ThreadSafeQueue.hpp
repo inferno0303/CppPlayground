@@ -5,12 +5,14 @@
 #include <mutex>
 #include <condition_variable>
 
+#define QUEUE_DEFAULT_MAXSIZE 1024
+
 // 实现了线程安全（FIFO）队列
 template <typename T>
 class ThreadSafeQueue {
 public:
     // 默认构造函数
-    explicit ThreadSafeQueue() : maxSize(10240){}
+    explicit ThreadSafeQueue() = default;
 
     // 构造函数：_maxSize 指定了队列最大元素个数
     explicit ThreadSafeQueue(const size_t _maxSize) {
@@ -74,7 +76,7 @@ public:
     }
 
 private:
-    size_t maxSize{}; // 最大队列大小
+    size_t maxSize{QUEUE_DEFAULT_MAXSIZE}; // 最大队列大小
     std::queue<T> queue;
     mutable std::mutex queueMutex;
     std::condition_variable queueCv;

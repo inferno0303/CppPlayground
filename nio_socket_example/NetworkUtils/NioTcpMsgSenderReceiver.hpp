@@ -9,7 +9,7 @@
 #include <winsock2.h>
 
 #define BUFFER_SIZE 1024
-#define QUEUE_MAXSIZE 20
+#define MSG_QUEUE_MAXSIZE 4096
 
 class NIOSocketSenderReceiver {
 private:
@@ -21,14 +21,14 @@ private:
     std::atomic<bool> sendThreadRunFlag{false};
 
     // 消息发送队列
-    ThreadSafeQueue<const char*> sendMsgQueue{QUEUE_MAXSIZE};
+    ThreadSafeQueue<const char*> sendMsgQueue{MSG_QUEUE_MAXSIZE};
 
     // 消息接收线程
     std::thread recvThread;
     std::atomic<bool> recvThreadRunFlag{false};
 
     // 消息接收队列
-    ThreadSafeQueue<const char*> recvMsgQueue{QUEUE_MAXSIZE};
+    ThreadSafeQueue<const char*> recvMsgQueue{MSG_QUEUE_MAXSIZE};
 
 public:
     explicit NIOSocketSenderReceiver(const SOCKET _socket) {
